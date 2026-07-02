@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Save } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -7,6 +7,8 @@ import ExerciseHistory from './ExerciseHistory'
 import type { Client, Exercise, RepRange, SessionExercise, ExerciseSet } from '../types'
 
 interface Props {
+  prefill?: { exercise: Exercise; repRange: RepRange } | null
+  onClearPrefill?: () => void
   client: Client
 }
 
@@ -34,7 +36,7 @@ function statusClass(status: string) {
   return `badge ${map[status] || 'badge-baseline'}`
 }
 
-export default function ExerciseLog({ client }: Props) {
+export default function ExerciseLog({ client, prefill, onClearPrefill }: Props) {
   const qc = useQueryClient()
   const [exerciseSearch, setExerciseSearch] = useState('')
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
@@ -51,6 +53,14 @@ export default function ExerciseLog({ client }: Props) {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [showHistory, setShowHistory] = useState(false)
+
+  useEffect(() => {
+    if (prefill) {
+      selectExerciseName(prefill.exercise.name)
+      setRepRange(prefill.repRange)
+      onClearPrefill?.()
+    }
+  }, [prefill])
   const [showDropdown, setShowDropdown] = useState(false)
 
   // Load exercises from DB, fall back to hardcoded list
